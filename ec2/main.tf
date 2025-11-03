@@ -1,23 +1,19 @@
 provider "aws" {
-  region = var.region
+  region = "us-east-2"
 }
 
-resource "aws_security_group" "ec2_sg" {
-  name        = "infragenie-ec2-sg"
-  description = "Allow SSH and HTTP"
+# Security group
+resource "aws_security_group" "jenkins_sg" {
+  name_prefix = "jenkins-sg-"
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = var.allowed_ports
+    content {
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
   }
 
   egress {
@@ -28,12 +24,18 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-resource "aws_instance" "infragenie_ec2" {
-  ami                    = "ami-022661f8a4a1b91cf" # Amazon Linux 2 - us-east-2
-  instance_type          = var.instance_type
-  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+# Dynamic EC2 instance creation
+resource "aws_instance" "ec2_instance" {
+  for_each = {
+    "${var.instance_name}" = var.instance_type
+  }
+
+  ami                    = var.ami
+  instance_type          = each.value
+  key_name               = var.key_name != null ? var.key_name : null
+  vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
+
   tags = {
-    Name = var.instance_name
+    Name = each.key
   }
 }
-
