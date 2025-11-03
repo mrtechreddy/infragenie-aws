@@ -1,6 +1,6 @@
-# =========================================================
-# VARIABLES — Dynamic EC2 Creation with Custom SGs
-# =========================================================
+#############################################
+# VARIABLES — Flexible Dynamic EC2 Setup
+#############################################
 
 variable "region" {
   description = "AWS region to deploy resources in"
@@ -9,7 +9,7 @@ variable "region" {
 }
 
 variable "instances" {
-  description = "Map of EC2 instances with their configuration and custom SGs"
+  description = "Map of EC2 instances with configuration and custom SGs"
   type = map(object({
     ami            = string
     instance_type  = string
