@@ -9,7 +9,7 @@ variable "instance_type" {
 
 variable "ami" {
   type    = string
-  default = "ami-0866a3c8686eaeeba" # update for your region
+  default = "ami-08962a4068733a2b6" # update for your region
 }
 
 variable "key_name" {
