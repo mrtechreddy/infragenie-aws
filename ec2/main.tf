@@ -1,33 +1,29 @@
 provider "aws" {
-  region = "us-east-1" # ✅ Change to your preferred region
+  region = var.region
 }
 
 # =========================================================
 # Create security groups dynamically per instance
 # =========================================================
 resource "aws_security_group" "instance_sg" {
-  for_each = { for k, v in var.instances : k => v.security_groups }
+  for_each = {
+    for instance_name, instance in var.instances :
+    instance_name => flatten(instance.security_groups)
+  }
 
   name_prefix = "${each.key}-sg-"
   description = "Custom SG for ${each.key}"
 
   dynamic "ingress" {
-    for_each = flatten([
-      for sg in each.value : [
-        for port in sg.allowed_ports : {
-          name       = sg.name
-          from_port  = port
-          to_port    = port
-          protocol   = "tcp"
-          cidr_block = "0.0.0.0/0"
-        }
-      ]
-    ])
+    for_each = [
+      for sg in each.value :
+      { from_port = sg.allowed_ports[0], to_port = sg.allowed_ports[0], protocol = "tcp" }
+    ]
     content {
       from_port   = ingress.value.from_port
       to_port     = ingress.value.to_port
       protocol    = ingress.value.protocol
-      cidr_blocks = [ingress.value.cidr_block]
+      cidr_blocks = ["0.0.0.0/0"]
     }
   }
 
@@ -74,7 +70,7 @@ output "instances" {
       id   = instance.id
       type = instance.instance_type
       key  = instance.key_name
-      sg   = [for sg in aws_security_group.instance_sg : sg.name if sg.key == name]
+      sgs  = [for sg in aws_security_group.instance_sg : sg.name if sg_key == name]
       ip   = instance.public_ip
     }
   }
