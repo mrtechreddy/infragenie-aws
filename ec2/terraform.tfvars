@@ -2,7 +2,7 @@ region = "us-east-1"
 
 instances = {
   jenkins = {
-    ami           = "ami-08962a4068733a2b6"
+    ami           = "ami-0fc5d935ebf8bc3bc"
     instance_type = "t2.medium"
     key_name      = "worklab"
     security_groups = [
@@ -14,7 +14,7 @@ instances = {
   }
 
   tomcat = {
-    ami           = "ami-08962a4068733a2b6"
+    ami           = "ami-0fc5d935ebf8bc3bc"
     instance_type = "t2.micro"
     key_name      = "worklab"
     security_groups = [
@@ -26,7 +26,7 @@ instances = {
   }
 
   backend = {
-    ami           = "ami-08962a4068733a2b6"
+    ami           = "ami-0fc5d935ebf8bc3bc"
     instance_type = "t3.small"
     key_name      = "worklab"
     security_groups = [
