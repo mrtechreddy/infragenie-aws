@@ -1,13 +1,16 @@
 provider "aws" {
-  region = "us-east-2"
+  region = "us-east-1" # Change to your preferred region
 }
 
-# Security group
-resource "aws_security_group" "jenkins_sg" {
-  name_prefix = "jenkins-sg-"
+# Create Security Group per instance
+resource "aws_security_group" "instance_sg" {
+  for_each = var.instances
+
+  name_prefix = "${each.key}-sg-"
+  description = "Security group for ${each.key}"
 
   dynamic "ingress" {
-    for_each = var.allowed_ports
+    for_each = each.value.allowed_ports
     content {
       from_port   = ingress.value
       to_port     = ingress.value
@@ -22,20 +25,34 @@ resource "aws_security_group" "jenkins_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "${each.key}-sg"
+  }
 }
 
-# Dynamic EC2 instance creation
-resource "aws_instance" "ec2_instance" {
-  for_each = {
-    "${var.instance_name}" = var.instance_type
-  }
+# Create EC2 instances
+resource "aws_instance" "ec2" {
+  for_each = var.instances
 
-  ami                    = var.ami
-  instance_type          = each.value
-  key_name               = var.key_name != null ? var.key_name : null
-  vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
+  ami                    = each.value.ami
+  instance_type          = each.value.instance_type
+  key_name               = each.value.key_name  # ✅ Uses your pem key name (must exist in AWS)
+  vpc_security_group_ids = [aws_security_group.instance_sg[each.key].id]
 
   tags = {
     Name = each.key
   }
 }
+
+# Output instance details
+output "instance_details" {
+  value = {
+    for name, inst in aws_instance.ec2 :
+    name => {
+      id   = inst.id
+      type = inst.instance_type
+      sg   = aws_security_group.instance_sg[name].name
+      key  = inst.key_name
+      ip   = inst.public_ip
+    }
