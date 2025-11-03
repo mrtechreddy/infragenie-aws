@@ -1,24 +1,16 @@
-variable "instance_name" {
-  type = string
-}
+# =========================================================
+# VARIABLES — Dynamic EC2 Creation with Custom SGs
+# =========================================================
 
-variable "instance_type" {
-  type    = string
-  default = "t2.micro"
-}
-
-variable "ami" {
-  type    = string
-  default = "ami-08962a4068733a2b6" # update for your region
-}
-
-variable "key_name" {
-  type        = string
-  description = "Name of the existing AWS key pair to use"
-  default     = null
-}
-
-variable "allowed_ports" {
-  type    = list(number)
-  default = [22]
+variable "instances" {
+  description = "Map of EC2 instances with their configuration and custom SGs"
+  type = map(object({
+    ami            = string
+    instance_type  = string
+    key_name       = string
+    security_groups = list(object({
+      name          = string
+      allowed_ports = list(number)
+    }))
+  }))
 }
