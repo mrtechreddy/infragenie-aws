@@ -1,15 +1,11 @@
-#############################################
-# VARIABLES — Flexible Dynamic EC2 Setup
-#############################################
-
 variable "region" {
-  description = "AWS region to deploy resources in"
+  description = "AWS region"
   type        = string
   default     = "us-east-1"
 }
 
 variable "instances" {
-  description = "Map of EC2 instances with configuration and custom SGs"
+  description = "Map of EC2 instances with configuration and security groups"
   type = map(object({
     ami            = string
     instance_type  = string
